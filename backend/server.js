@@ -146,7 +146,7 @@ console.log(`Configured GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}`);
 
 // For local development prefer binding to IPv4 loopback so frontend proxy can connect.
 // Allow override via HOST env var (set to 0.0.0.0 for containerized / remote runs).
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
