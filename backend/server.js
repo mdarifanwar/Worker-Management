@@ -34,7 +34,8 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://worker-management-liart.vercel.app'
+    'https://worker-management-liart.vercel.app',
+    'https://your-frontend-service-name.onrender.com',
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
