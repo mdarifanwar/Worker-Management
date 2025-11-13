@@ -34,7 +34,8 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://your-frontend-service-name.onrender.com'
+    'https://your-frontend-service-name.onrender.com',
+    'https://worker-management-delta.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
