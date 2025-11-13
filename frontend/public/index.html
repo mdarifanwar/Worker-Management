@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Worker Management</title>
+
+  <!-- Favicon setup (use a bold, square, high-contrast logo) -->
+  <link rel="icon" type="image/png" sizes="64x64" href="%PUBLIC_URL%/logoWM.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logoWM.png" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Optional: preload for better visibility -->
+  <link rel="preload" as="image" href="%PUBLIC_URL%/logoWM.png">
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- React mounts here -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(function(registration) {
+            console.log('ServiceWorker registration successful:', registration);
+          })
+          .catch(function(error) {
+            console.log('ServiceWorker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

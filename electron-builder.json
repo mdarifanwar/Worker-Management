@@ -1,0 +1,19 @@
+{
+  "appId": "com.worker.management",
+  "productName": "Worker Management App",
+  "directories": {
+    "buildResources": "frontend/public"
+  },
+  "files": [
+    "frontend/build/**/*",
+    "electron-main.js"
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "frontend/public/logoWM.png"
+  },
+  "mac": {
+    "target": "dmg",
+    "icon": "frontend/public/logoWM.png"
+  }
+}

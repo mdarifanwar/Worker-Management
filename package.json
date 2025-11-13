@@ -1,0 +1,29 @@
+{
+  "name": "worker-management-app",
+  "version": "1.0.0",
+  "description": "An Electron app for worker management.",
+  "author": "Arif Mahfooz",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "babel-jest": "^30.2.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "jest": "^30.2.0"
+  },
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "electron": "electron . --no-sandbox",
+    "electron-build": "npm run build && electron-builder"
+  }
+}
