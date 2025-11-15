@@ -32,9 +32,7 @@ console.log('Express trust proxy value:', app.get('trust proxy'));
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    origin: true,
-  ],
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
