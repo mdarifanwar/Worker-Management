@@ -33,8 +33,7 @@ console.log('Express trust proxy value:', app.get('trust proxy'));
 app.use(helmet());
 app.use(cors({
   origin: [
-    'http://localhost:3000',
-    'https://worker-management-nu.vercel.app'
+    origin: true,
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
