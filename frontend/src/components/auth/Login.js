@@ -18,45 +18,36 @@ const Login = () => {
   useEffect(() => {
     // After OAuth redirect the server sets an HttpOnly cookie. Fetch the
     // profile to confirm authentication and route user accordingly.
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
 
-      // In development we only auto-fetch profile if a token was provided
-      // (dev fallback) so we don't spam the backend with unauthenticated
-      // requests that return 401 when the user is on the login page.
-      if (token && process.env.NODE_ENV !== 'production') {
-        // Development-only fallback: set Authorization header and local token so
-        // the frontend can fetch profile. This is NOT used in production.
-        localStorage.setItem('token', token);
-        api.defaults.headers = api.defaults.headers || {};
-        api.defaults.headers.common = api.defaults.headers.common || {};
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
+    // Only fetch profile if there's a token from OAuth callback
+    if (!token) return;
 
-      // Only attempt to fetch profile automatically if we have a token or
-      // we're running in production (where cookie-based sessions are expected).
-      const shouldFetchProfile = Boolean(token) || process.env.NODE_ENV === 'production';
+    // In development we set the token in localStorage for API calls
+    if (process.env.NODE_ENV !== 'production') {
+      localStorage.setItem('token', token);
+      api.defaults.headers = api.defaults.headers || {};
+      api.defaults.headers.common = api.defaults.headers.common || {};
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
 
-      if (!shouldFetchProfile) return; // skip profile fetch on dev login page
-
-      // Add a small delay to ensure backend is ready
-      setTimeout(() => {
-        api.get('/auth/profile')
-          .then(res => {
-            const user = res.data;
-            if (user && user.companyName && user.phone) {
-              localStorage.setItem('user', JSON.stringify(user));
-              navigate('/');
-            } else {
-              toast.info('Please complete your profile.');
-              localStorage.setItem('user', JSON.stringify(user));
-              navigate('/profile-update');
-            }
-          })
-          .catch(() => {
-            // Not authenticated or profile fetch failed; no-op
-          });
-      }, 1000); // 1 second delay
+    // Fetch profile after OAuth
+    api.get('/auth/profile')
+      .then(res => {
+        const user = res.data;
+        if (user && user.companyName && user.phone) {
+          localStorage.setItem('user', JSON.stringify(user));
+          navigate('/');
+        } else {
+          toast.info('Please complete your profile.');
+          localStorage.setItem('user', JSON.stringify(user));
+          navigate('/profile-update');
+        }
+      })
+      .catch(() => {
+        toast.error('Authentication failed');
+      });
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -70,7 +61,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-  const result = await login(formData.identifier, formData.password);
+    const result = await login(formData.identifier, formData.password);
     
     if (result.success) {
       toast.success('Login successful!');

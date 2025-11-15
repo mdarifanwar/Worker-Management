@@ -1,5 +1,5 @@
 // Basic service worker for PWA offline support
-const CACHE_NAME = 'worker-mgmt-cache-v1';
+const CACHE_NAME = 'worker-mgmt-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -25,12 +25,15 @@ self.addEventListener('fetch', event => {
 });
 
 self.addEventListener('activate', event => {
+  // Take control of all pages immediately
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      );
+    clients.claim().then(() => {
+      return caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.filter(name => name !== CACHE_NAME)
+            .map(name => caches.delete(name))
+        );
+      });
     })
   );
 });

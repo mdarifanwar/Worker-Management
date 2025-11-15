@@ -73,26 +73,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     try {
-      const response = await api.post('/auth/login', {
-        identifier,
-        password
-      });
-      // Server sets HttpOnly cookie; response includes user object
+      const response = await api.post('/auth/login', { identifier, password });
+      
       if (response.data && response.data.user) {
         setUser(response.data.user);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
-        // Fetch profile if not returned in response
         const profileRes = await api.get('/auth/profile');
         setUser(profileRes.data);
         localStorage.setItem('user', JSON.stringify(profileRes.data));
       }
+      
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Login failed' 
-      };
+      return { success: false, message: error.response?.data?.message || 'Login failed' };
     }
   };
 

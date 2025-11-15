@@ -13,17 +13,18 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Note: we no longer add Authorization headers from localStorage. Server-set
-// HttpOnly cookies are used for auth to avoid token leakage.
-
 // Add response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Authentication failed — clear cached user and redirect to login
+
+      
+      
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
       localStorage.removeItem('user');
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
