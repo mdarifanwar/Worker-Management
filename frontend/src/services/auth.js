@@ -35,6 +35,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+      if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+      setLoading(false);
+      return;
+    }
     // Only attempt to fetch profile automatically if one of these is true:
     // - there is a local dev token in localStorage (dev fallback),
     // - the URL contains a token param (just returned from OAuth), or
