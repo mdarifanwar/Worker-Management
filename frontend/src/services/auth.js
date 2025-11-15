@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
 
     // Add a small delay to ensure backend is ready
     setTimeout(() => {
-      api.get('/auth/profile')
+      api.get('api/auth/profile')
         .then(res => {
           setUser(res.data);
           localStorage.setItem('user', JSON.stringify(res.data));
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post('api/auth/login', {
         identifier,
         password
       });
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
         // Fetch profile if not returned in response
-        const profileRes = await api.get('/auth/profile');
+        const profileRes = await api.get('api/auth/profile');
         setUser(profileRes.data);
         localStorage.setItem('user', JSON.stringify(profileRes.data));
       }
@@ -93,13 +93,13 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('api/auth/register', userData);
       // Server sets cookie; response includes user
       if (response.data && response.data.user) {
         setUser(response.data.user);
         localStorage.setItem('user', JSON.stringify(response.data.user));
       } else {
-        const profileRes = await api.get('/auth/profile');
+        const profileRes = await api.get('api/auth/profile');
         setUser(profileRes.data);
         localStorage.setItem('user', JSON.stringify(profileRes.data));
       }
