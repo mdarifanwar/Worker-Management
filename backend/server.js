@@ -19,15 +19,20 @@ require('./config/passport');
 const app = express();
 
 
+// Configure trust proxy for deployment platforms
 if (process.env.TRUST_PROXY) {
   // Allow explicit override (useful for production when you control the proxy)
   app.set('trust proxy', process.env.TRUST_PROXY);
-} else if (process.env.NODE_ENV !== 'production') {
+} else if (process.env.NODE_ENV === 'production') {
+  // Trust first proxy in production (required for Render, Heroku, etc.)
+  app.set('trust proxy', 1);
+} else {
   // Default to trusting the first proxy in non-production environments
   app.set('trust proxy', 1);
 }
 
 console.log('Express trust proxy value:', app.get('trust proxy'));
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 // Middleware
 app.use(helmet());

@@ -39,8 +39,15 @@ exports.register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
     };
+    
+    // In production, don't set domain to allow cross-origin cookies
+    if (process.env.NODE_ENV !== 'production') {
+      cookieOptions.domain = 'localhost';
+    }
+    
     res.cookie('token', token, cookieOptions);
     res.status(201).json({
       message: 'User created successfully',
@@ -86,16 +93,33 @@ exports.login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/'
     };
+    
+    // In production, don't set domain to allow cross-origin cookies
+    if (process.env.NODE_ENV !== 'production') {
+      cookieOptions.domain = 'localhost';
+    }
     
     console.log('[login] Setting cookie with options:', cookieOptions);
     console.log('[login] NODE_ENV:', process.env.NODE_ENV);
     console.log('[login] Request origin:', req.headers.origin);
+    console.log('[login] Request user-agent:', req.headers['user-agent']);
+    console.log('[login] Request headers (cookie-related):', {
+      origin: req.headers.origin,
+      referer: req.headers.referer,
+      'sec-fetch-site': req.headers['sec-fetch-site'],
+      'sec-fetch-mode': req.headers['sec-fetch-mode']
+    });
     
     res.cookie('token', token, cookieOptions);
+    console.log('[login] Cookie set successfully');
+    
+    // Also send token in response as fallback for cross-origin issues
     res.json({
       message: 'Login successful',
+      token: token, // Include token as fallback
       user: {
         id: user._id,
         companyName: user.companyName,

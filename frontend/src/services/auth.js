@@ -45,17 +45,16 @@ export const AuthProvider = ({ children }) => {
       return;
     }
     // Only attempt to fetch profile automatically if one of these is true:
-    // - there is a local dev token in localStorage (dev fallback),
+    // - there is a token in localStorage (fallback auth),
     // - the URL contains a token param (just returned from OAuth), or
-    // - we are running in production (cookie-based auth is expected).
+    // - we have a cached user (might have valid cookie).
     const hasLocalToken = !!localStorage.getItem('token');
     const urlParams = new URLSearchParams(window.location.search);
     const hasUrlToken = !!urlParams.get('token');
     const hasCachedUser = !!localStorage.getItem('user');
 
     if (!hasLocalToken && !hasUrlToken && !hasCachedUser) {
-      // Skip profile fetch in dev when there is no token — avoids noisy 401/500
-      // errors on initial unauthenticated page loads.
+      // Skip profile fetch when there's no indication of authentication
       setUser(null);
       setLoading(false);
       return;
@@ -81,6 +80,12 @@ export const AuthProvider = ({ children }) => {
       console.log('[Frontend] Attempting login...');
       const response = await api.post('/auth/login', { identifier, password });
       console.log('[Frontend] Login response:', response.data);
+      
+      // If token is provided in response, store it as fallback for cross-origin cookie issues
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        console.log('[Frontend] Token stored as fallback');
+      }
       
       if (response.data && response.data.user) {
         setUser(response.data.user);
@@ -128,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     // Call backend to clear auth cookie
     api.post('/auth/logout').catch(() => {});
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
   };
 

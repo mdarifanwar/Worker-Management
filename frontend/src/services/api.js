@@ -13,18 +13,31 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Add request interceptor to include Authorization header as fallback
+api.interceptors.request.use(
+  (config) => {
+    // If we have a token in localStorage, add it as Authorization header as fallback
+    const token = localStorage.getItem('token');
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Add response interceptor to handle token expiration
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-
-      
+      // Clear both user and token
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       
       if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
         window.location.href = '/login';
       }
-      localStorage.removeItem('user');
     }
     return Promise.reject(error);
   }
