@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-// Use environment variable if provided, otherwise use relative path for dev/prod flexibility
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+// Use environment variable if provided, otherwise use full backend URL for production
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://worker-management-backend.onrender.com/api';
 
 // BACKEND_ORIGIN is useful for static asset URLs (uploads) which are served from backend origin
-export const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_ORIGIN || '';
+export const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_ORIGIN || 'https://worker-management-backend.onrender.com';
 
 
 // Send cookies with requests so HttpOnly auth cookie is included

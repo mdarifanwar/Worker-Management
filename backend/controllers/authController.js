@@ -88,6 +88,11 @@ exports.login = async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     };
+    
+    console.log('[login] Setting cookie with options:', cookieOptions);
+    console.log('[login] NODE_ENV:', process.env.NODE_ENV);
+    console.log('[login] Request origin:', req.headers.origin);
+    
     res.cookie('token', token, cookieOptions);
     res.json({
       message: 'Login successful',

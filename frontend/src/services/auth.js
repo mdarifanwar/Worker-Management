@@ -34,6 +34,11 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(true);
 
+  // Set up axios interceptors on mount
+  useEffect(() => {
+    setupAxiosInterceptors();
+  }, []);
+
   useEffect(() => {
       if (window.location.pathname === '/login' || window.location.pathname === '/register') {
       setLoading(false);
@@ -73,19 +78,27 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (identifier, password) => {
     try {
+      console.log('[Frontend] Attempting login...');
       const response = await api.post('/auth/login', { identifier, password });
+      console.log('[Frontend] Login response:', response.data);
       
       if (response.data && response.data.user) {
         setUser(response.data.user);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        console.log('[Frontend] User set from login response');
       } else {
+        console.log('[Frontend] Fetching profile after login...');
+        // Add a small delay to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 100));
         const profileRes = await api.get('/auth/profile');
         setUser(profileRes.data);
         localStorage.setItem('user', JSON.stringify(profileRes.data));
+        console.log('[Frontend] User set from profile fetch');
       }
       
       return { success: true };
     } catch (error) {
+      console.error('[Frontend] Login error:', error);
       return { success: false, message: error.response?.data?.message || 'Login failed' };
     }
   };
