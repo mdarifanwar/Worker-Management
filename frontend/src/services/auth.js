@@ -46,8 +46,9 @@ export const AuthProvider = ({ children }) => {
     const hasLocalToken = !!localStorage.getItem('token');
     const urlParams = new URLSearchParams(window.location.search);
     const hasUrlToken = !!urlParams.get('token');
+    const hasCachedUser = !!localStorage.getItem('user');
 
-    if (!hasLocalToken && !hasUrlToken && process.env.NODE_ENV !== 'production') {
+    if (!hasLocalToken && !hasUrlToken && !hasCachedUser) {
       // Skip profile fetch in dev when there is no token — avoids noisy 401/500
       // errors on initial unauthenticated page loads.
       setUser(null);
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Add a small delay to ensure backend is ready
-    setTimeout(() => {
+    // setTimeout(() => 
       api.get('/auth/profile')
         .then(res => {
           setUser(res.data);
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
           setUser(null);
         })
         .finally(() => setLoading(false));
-    }, 1000); // 1 second delay
+    // }, 1000); // 1 second delay
   }, []);
 
   const login = async (identifier, password) => {
