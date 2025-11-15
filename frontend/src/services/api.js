@@ -31,19 +31,19 @@ api.interceptors.response.use(
 
 // Workers API
 export const workersAPI = {
-  getAll: (params) => api.get('/workers', { params }),
-  getById: (id) => api.get(`/workers/${id}`),
-  create: (data) => api.post('/workers', data),
-  update: (id, data) => api.put(`/workers/${id}`, data),
-  delete: (id) => api.delete(`/workers/${id}`),
-  addWork: (id, data) => api.post(`/workers/${id}/work`, data),
+  getAll: (params) => api.get('/api/workers', { params }),
+  getById: (id) => api.get(`/api/workers/${id}`),
+  create: (data) => api.post('/api/workers', data),
+  update: (id, data) => api.put(`/api/workers/${id}`, data),
+  delete: (id) => api.delete(`/api/workers/${id}`),
+  addWork: (id, data) => api.post(`/api/workers/${id}/work`, data),
 };
 
 // Auth API
 export const authAPI = {
-  login: (data) => api.post('/auth/login', data),
-  register: (data) => api.post('/auth/register', data),
-  getProfile: () => api.get('/auth/profile'),
+  login: (data) => api.post('/api/auth/login', data),
+  register: (data) => api.post('/api/auth/register', data),
+  getProfile: () => api.get('/api/auth/profile'),
 };
 
 export default api;
