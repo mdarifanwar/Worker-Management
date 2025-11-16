@@ -73,19 +73,6 @@ router.post('/logout', (req, res) => {
 	res.json({ message: 'Logged out' });
 });
 
-// Debug endpoint to check cookie reception
-router.get('/debug-cookies', (req, res) => {
-	res.json({
-		cookies: req.cookies,
-		headers: {
-			cookie: req.headers.cookie,
-			origin: req.headers.origin,
-			referer: req.headers.referer,
-			authorization: req.headers.authorization
-		}
-	});
-});
-
 router.get('/profile', auth, getProfile);
 
 module.exports = router;

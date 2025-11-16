@@ -60,50 +60,71 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Add a small delay to ensure backend is ready
-    // setTimeout(() => 
+ggit     // Add a delay to ensure backend is ready and avoid immediate 401s
+    setTimeout(() => {
       api.get('/auth/profile')
         .then(res => {
           setUser(res.data);
           localStorage.setItem('user', JSON.stringify(res.data));
+          import('./api').then(({ debugLog }) => {
+            debugLog('[Frontend] Profile fetched successfully on init');
+          });
         })
-        .catch(() => {
+        .catch((error) => {
+          import('./api').then(({ debugError }) => {
+            debugError('[Frontend] Profile fetch failed on init:', error.response?.status);
+            debugError('[Frontend] Profile error details:', error.response?.data);
+          });
           localStorage.removeItem('user');
+          localStorage.removeItem('token');
           setUser(null);
         })
         .finally(() => setLoading(false));
-    // }, 1000); // 1 second delay
+    }, 500); // 500ms delay
   }, []);
 
   const login = async (identifier, password) => {
     try {
-      console.log('[Frontend] Attempting login...');
+      // Import persistent logging
+      const { debugLog, debugError } = await import('./api');
+      
+      debugLog('[Frontend] Attempting login...');
+      
+      // Import the setLoginInProgress function
+      const { setLoginInProgress } = await import('./api');
+      setLoginInProgress(true);
+      
       const response = await api.post('/auth/login', { identifier, password });
-      console.log('[Frontend] Login response:', response.data);
+      debugLog('[Frontend] Login response:', response.data);
       
       // If token is provided in response, store it as fallback for cross-origin cookie issues
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        console.log('[Frontend] Token stored as fallback');
+        debugLog('[Frontend] Token stored as fallback');
       }
       
       if (response.data && response.data.user) {
         setUser(response.data.user);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        console.log('[Frontend] User set from login response');
+        debugLog('[Frontend] User set from login response');
       } else {
-        console.log('[Frontend] Fetching profile after login...');
-        // Add a small delay to ensure cookie is set
-        await new Promise(resolve => setTimeout(resolve, 100));
+        debugLog('[Frontend] Fetching profile after login...');
+        // Add a longer delay to ensure cookie/token is properly set
+        await new Promise(resolve => setTimeout(resolve, 500));
         const profileRes = await api.get('/auth/profile');
         setUser(profileRes.data);
         localStorage.setItem('user', JSON.stringify(profileRes.data));
-        console.log('[Frontend] User set from profile fetch');
+        debugLog('[Frontend] User set from profile fetch');
       }
       
+      setLoginInProgress(false);
       return { success: true };
     } catch (error) {
-      console.error('[Frontend] Login error:', error);
+      const { debugError, setLoginInProgress } = await import('./api');
+      debugError('[Frontend] Login error:', error);
+      debugError('[Frontend] Error response:', error.response?.data);
+      debugError('[Frontend] Error status:', error.response?.status);
+      setLoginInProgress(false);
       return { success: false, message: error.response?.data?.message || 'Login failed' };
     }
   };

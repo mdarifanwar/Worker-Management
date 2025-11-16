@@ -102,19 +102,9 @@ exports.login = async (req, res) => {
       cookieOptions.domain = 'localhost';
     }
     
-    console.log('[login] Setting cookie with options:', cookieOptions);
-    console.log('[login] NODE_ENV:', process.env.NODE_ENV);
-    console.log('[login] Request origin:', req.headers.origin);
-    console.log('[login] Request user-agent:', req.headers['user-agent']);
-    console.log('[login] Request headers (cookie-related):', {
-      origin: req.headers.origin,
-      referer: req.headers.referer,
-      'sec-fetch-site': req.headers['sec-fetch-site'],
-      'sec-fetch-mode': req.headers['sec-fetch-mode']
-    });
+    console.log(`[login] Setting authentication cookie for user: ${user.email}`);
     
     res.cookie('token', token, cookieOptions);
-    console.log('[login] Cookie set successfully');
     
     // Also send token in response as fallback for cross-origin issues
     res.json({

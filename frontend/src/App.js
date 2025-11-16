@@ -21,11 +21,29 @@ import ResetPassword from './pages/ResetPassword';
 // Auth Context
 import { AuthProvider, useAuth } from './services/auth';
 
+// Debug Panel for persistent logging
+import DebugPanel from './components/common/DebugPanel';
+
 import './styles/App.css';
 
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+  
   return user ? children : <Navigate to="/login" />;
 };
 
@@ -45,6 +63,9 @@ function App() {
             } />
           </Routes>
           <ToastContainer position="top-right" autoClose={3000} />
+          
+          {/* Debug Panel - only in development */}
+          <DebugPanel />
         </div>
       </BrowserRouter>
     </AuthProvider>

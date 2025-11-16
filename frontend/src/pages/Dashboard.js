@@ -263,14 +263,26 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    fetchWorkers();
-  }, []); // Fetch only on initial load
+    // Only fetch workers if user is available
+    if (user) {
+      // Add a small delay to ensure authentication is properly established
+      const timer = setTimeout(() => {
+        fetchWorkers();
+      }, 200); // Small delay to allow auth state to stabilize
+      
+      return () => clearTimeout(timer);
+    }
+  }, [user]); // Fetch when user becomes available
 
   const fetchWorkers = async () => {
     try {
       setLoading(true);
+      // Import persistent logging
+      const { debugLog } = await import('../services/api');
+      debugLog('[Dashboard] Fetching workers...');
       // Fetch all workers initially, search will be client-side for this setup
       const response = await workersAPI.getAll({}); 
+      debugLog('[Dashboard] Workers fetched successfully');
       const allWorkers = response.data.workers;
       setWorkers(allWorkers);
       
@@ -285,7 +297,15 @@ const Dashboard = () => {
         activeWorkers: allWorkers.filter(w => w.isActive).length
       });
     } catch (error) {
-      toast.error('Error fetching workers');
+      const { debugError } = await import('../services/api');
+      debugError('[Dashboard] Error fetching workers:', error);
+      debugError('[Dashboard] Error response:', error.response?.data);
+      if (error.response?.status === 401) {
+        debugError('[Dashboard] 401 error - authentication issue');
+        // Don't show error toast for 401, let the auth system handle it
+      } else {
+        toast.error('Error fetching workers');
+      }
     } finally {
       setLoading(false);
     }

@@ -65,12 +65,15 @@ const Login = () => {
     
     if (result.success) {
       toast.success('Login successful!');
-      navigate('/');
+      
+      // Add a small delay before navigation to ensure auth state is updated
+      setTimeout(() => {
+        navigate('/');
+      }, 300);
     } else {
       toast.error(result.message);
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
