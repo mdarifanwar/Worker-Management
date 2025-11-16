@@ -98,11 +98,11 @@ export const clearStoredLogs = () => {
   console.log('🧹 Stored logs cleared');
 };
 
-// Use environment variable if provided, otherwise use deployed backend
-export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://worker-management-backend.onrender.com/api';
+// Use local backend for testing
+export const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5002/api';
 
 // BACKEND_ORIGIN is useful for static asset URLs (uploads) which are served from backend origin
-export const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_ORIGIN || 'https://worker-management-backend.onrender.com';
+export const BACKEND_ORIGIN = process.env.REACT_APP_BACKEND_ORIGIN || 'http://localhost:5002';
 
 
 // Send cookies with requests so HttpOnly auth cookie is included

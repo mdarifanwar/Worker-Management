@@ -22,7 +22,6 @@ const Register = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [error, setError] = useState('');
 
   const navigate = useNavigate();
 
@@ -67,20 +66,23 @@ const Register = () => {
       toast.error('Please enter a valid phone number');
       return;
     }
-    // Send OTP request to backend (only email)
+    // Move to OTP screen immediately and send OTP in background
+    setOtpSent(true);
+    setStep(3);
+    toast.info('Sending OTP to your email...');
+    
+    // Send OTP request in background
     api.post('/auth/register/send-otp', { email: formData.email })
       .then(res => {
         const result = res.data;
         if (result.message && result.message.toLowerCase().includes('otp')) {
-          setOtpSent(true);
-          setStep(3);
           toast.success('OTP sent to your email');
         } else {
-          toast.error(result.message || 'Failed to send OTP');
+          toast.warning(result.message || 'OTP sending status unclear');
         }
       })
       .catch(() => {
-        toast.error('Failed to send OTP');
+        toast.error('Failed to send OTP. You can try resending.');
       });
   };
 
@@ -96,26 +98,25 @@ const Register = () => {
 
   // Resend OTP handler
   const handleResendOtp = async () => {
-    setLoading(true);
-    setError('');
+    setResending(true);
+    
+    // Show immediate feedback
+    toast.info('Resending OTP to your email...');
+    
     try {
       const response = await api.post('/auth/register/send-otp', {
         email: formData.email,
       });
-      setStep(3);
-      toast.success(response.data.message || 'OTP sent successfully');
+      toast.success(response.data.message || 'OTP resent successfully');
     } catch (err) {
       if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
-        setError(err.response.data.errors[0].msg);
         toast.error(err.response.data.errors[0].msg);
       } else {
-        setError(err.response?.data?.message || 'Failed to send OTP');
         toast.error(err.response?.data?.message || 'Failed to send OTP');
       }
     } finally {
-      setLoading(false);
+      setResending(false);
     }
-    setResending(false);
   };
 
   // Step 4: Password
@@ -187,9 +188,6 @@ const Register = () => {
           </div>
         </div>
         <div className="auth-container">
-      {error && (
-        <div style={{ color: 'red', textAlign: 'center', marginTop: '0.5rem', fontSize: '0.95rem' }}>{error}</div>
-      )}
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
