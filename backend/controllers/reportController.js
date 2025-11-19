@@ -106,7 +106,8 @@ exports.generateWorkerReport = async (req, res) => {
        .text(`Average Daily Earnings: ₹${averageDailyEarnings.toFixed(2)}`, 50, 285);
 
     // Work history table
-    let yPosition = logoY + 60;
+    // Start from current doc.y so PDFKit's internal margins are respected
+    let yPosition = doc.y || (logoY + 60);
     // Table header row with light gray background
     doc.rect(50, yPosition, 500, 22).fill('#f3f4f6');
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#222');
@@ -122,39 +123,87 @@ exports.generateWorkerReport = async (req, res) => {
     doc.text('Rate', 320, yPosition + 5);
     doc.text('Total', 420, yPosition + 5);
     yPosition += 18;
-    // Table rows
-    workHistory.forEach((work, index) => {
-      if (yPosition > 700) {
-        doc.addPage();
-        yPosition = 50;
-      }
-      // For each item in work
-      work.items.forEach(item => {
-        doc.fontSize(9).font('Helvetica').fillColor('#222');
-        doc.text(item.itemName, 60, yPosition + 5);
-        doc.text(item.piecesCompleted.toString(), 220, yPosition + 5);
-        doc.text(`₹${item.rate.toFixed(2)}`, 320, yPosition + 5);
-        doc.text(`₹${(item.piecesCompleted * item.rate).toFixed(2)}`, 420, yPosition + 5);
-        yPosition += 15;
-      });
-    });
-    // Footer
-    doc.fontSize(10).fillColor('#888').text(`Report generated on ${new Date().toLocaleDateString()}`, 50, yPosition + 30, { align: 'center' });
+    // Table rows: draw each work-day as its own table and avoid splitting a day's block across pages when possible
+    const PAGE_BOTTOM_MARGIN = 40; // extra space to keep footer clear
+    const PAGE_HEIGHT = doc.page.height;
+    const PAGE_TOP_MARGIN = doc.page.margins && doc.page.margins.top ? doc.page.margins.top : 50;
+    const rowHeight = 15;
+    const dayHeaderHeight = 22;
+    const colHeaderHeight = 18;
 
-    // Footer
-    const totalPages = doc.bufferedPageRange().count;
-    for (let i = 0; i < totalPages; i++) {
-      doc.switchToPage(i);
-      
-      doc.fontSize(8)
-         .fillColor('#666666')
-         .text(
-          `Generated on ${new Date().toLocaleDateString()}`, 
-          50, 
-          doc.page.height - 50,
-          { align: 'center' }
-        );
-    }
+    const drawColHeader = (y) => {
+      doc.rect(50, y, 500, colHeaderHeight).fill('#ededed');
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#222');
+      doc.text('Item Name', 60, y + 5);
+      doc.text('Pieces', 220, y + 5);
+      doc.text('Rate', 320, y + 5);
+      doc.text('Total', 420, y + 5);
+      return y + colHeaderHeight;
+    };
+
+    workHistory.forEach((work) => {
+      const rows = (work.items || []).length;
+      const required = dayHeaderHeight + colHeaderHeight + (rows * rowHeight) + 12; // padding
+
+      // If the required block doesn't fit, start a new page
+      if (yPosition + required > PAGE_HEIGHT - PAGE_BOTTOM_MARGIN) {
+        doc.addPage();
+        yPosition = doc.y || PAGE_TOP_MARGIN;
+      }
+
+      // Day header (date + total)
+      doc.rect(50, yPosition, 500, dayHeaderHeight).fill('#f3f4f6');
+      doc.fontSize(11).font('Helvetica-Bold').fillColor('#222');
+      doc.text(new Date(work.date).toLocaleDateString(), 60, yPosition + 6);
+      doc.text('Total:', 400, yPosition + 6, { align: 'right', width: 80 });
+      doc.fillColor('#2563eb').font('Helvetica-Bold').text(`₹${(work.totalEarned||0).toFixed(2)}`, 480, yPosition + 6);
+      yPosition += dayHeaderHeight;
+
+      // Column headers
+      yPosition = drawColHeader(yPosition);
+
+      // Rows for this day
+      (work.items || []).forEach((item) => {
+        // If row would overflow page, add page and redraw column header
+        if (yPosition + rowHeight > PAGE_HEIGHT - PAGE_BOTTOM_MARGIN) {
+          doc.addPage();
+          yPosition = doc.y || PAGE_TOP_MARGIN;
+          yPosition = drawColHeader(yPosition);
+        }
+
+        doc.fontSize(9).font('Helvetica').fillColor('#222');
+        doc.text(item.itemName || '-', 60, yPosition + 5);
+        doc.text((item.piecesCompleted || 0).toString(), 220, yPosition + 5);
+        const rate = (typeof item.wageRate === 'number') ? item.wageRate : (item.rate || 0);
+        const total = (typeof item.totalWage === 'number') ? item.totalWage : (rate * (item.piecesCompleted || 0));
+        doc.text(`₹${rate.toFixed(2)}`, 320, yPosition + 5);
+        doc.text(`₹${total.toFixed(2)}`, 420, yPosition + 5);
+        yPosition += rowHeight;
+      });
+      // small gap after each day
+      yPosition += 8;
+    });
+    // Footer: draw on each page using pageAdded event and for the current page
+    const drawFooter = () => {
+      try {
+        doc.fontSize(8)
+           .fillColor('#666666')
+           .text(
+             `Generated on ${new Date().toLocaleDateString()}`,
+             50,
+             doc.page.height - 50,
+             { align: 'center' }
+           );
+      } catch (e) {
+        // ignore footer drawing errors
+      }
+    };
+
+    // Attach event so subsequent pages get a footer when added
+    doc.on('pageAdded', () => drawFooter());
+
+    // Draw footer on the current (last) page as well
+    drawFooter();
 
     doc.end();
 
@@ -174,13 +223,14 @@ exports.generateSummaryReport = async (req, res) => {
                               .sort({ name: 1 });
 
     const user = await User.findById(req.user.id);
+    const companyName = user && user.companyName ? user.companyName : 'Company';
 
     // Create PDF document
     const doc = new PDFDocument();
     
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 
-      `attachment; filename="${user.companyName}-summary-${Date.now()}.pdf"`
+      `attachment; filename="${companyName}-summary-${Date.now()}.pdf"`
     );
 
     doc.pipe(res);
@@ -199,7 +249,7 @@ exports.generateSummaryReport = async (req, res) => {
     doc.fontSize(20)
       .font('Helvetica-Bold')
       .fillColor('#2563eb')
-      .text(user.companyName, 50, logoY, { align: 'center' });
+      .text(companyName, 50, logoY, { align: 'center' });
 
     doc.fontSize(12)
       .font('Helvetica')
@@ -284,12 +334,9 @@ exports.generateSummaryReport = async (req, res) => {
      .text(`Total Workers: ${totalWorkers}`, 50, 80)
      .text(`Total Company Payments: $${totalCompanyEarnings.toFixed(2)}`, 50, 100);
 
-   // Footer (move after all content, before doc.end())
-   // Add footer to all pages
-   const totalPages = doc.bufferedPageRange().count;
-   if (totalPages > 0) {
-     for (let i = 0; i < totalPages; i++) {
-       doc.switchToPage(i);
+   // Footer: draw on each page using pageAdded event and for the current page
+   const drawFooter = () => {
+     try {
        doc.fontSize(8)
          .fillColor('#666666')
          .text(
@@ -298,8 +345,13 @@ exports.generateSummaryReport = async (req, res) => {
            doc.page.height - 50,
            { align: 'center' }
          );
+     } catch (e) {
+       // ignore footer errors
      }
-   }
+   };
+
+   doc.on('pageAdded', () => drawFooter());
+   drawFooter();
 
    // Add error event handler to avoid unhandled stream errors
    doc.on('error', (err) => {
@@ -335,5 +387,96 @@ exports.shareReport = async (req, res) => {
     
   } catch (error) {
     res.status(500).json({ message: 'Error sharing report', error: error.message });
+  }
+};
+
+// Generate worker report using Puppeteer (server-side HTML rendering -> PDF)
+exports.generateWorkerReportHtmlPdf = async (req, res) => {
+  const puppeteer = require('puppeteer');
+  try {
+    const { workerId } = req.params;
+    const worker = await Worker.findOne({ _id: workerId, owner: req.user.id }).populate('owner', 'companyName logo');
+    if (!worker) return res.status(404).json({ message: 'Worker not found' });
+
+    // Build printable HTML (similar to frontend)
+    const companyName = worker.owner?.companyName || '';
+    // Inline logo as data URL if available
+    let logoData = '';
+    try {
+      if (worker.owner && worker.owner.logo) {
+        const logoPath = path.join(__dirname, '../uploads/', worker.owner.logo);
+        if (fs.existsSync(logoPath)) {
+          const buf = fs.readFileSync(logoPath);
+          const ext = path.extname(logoPath).toLowerCase().replace('.', '') || 'png';
+          const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
+          logoData = `data:${mime};base64,${buf.toString('base64')}`;
+        }
+      }
+    } catch (e) {
+      console.debug('Could not inline logo for puppeteer PDF', e && e.message);
+    }
+
+    const sorted = (worker.workHistory || []).slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+    // Simple HTML template used for server-side rendering
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${companyName} - ${worker.name}</title>
+      <style>
+        @page { size: A4; margin: 12mm 8mm; }
+        /* Page and typography (squeezed) */
+        body{font-family:Arial,Helvetica,sans-serif;margin:12mm 8mm;color:#222;font-size:12px}
+        .header{display:flex;gap:10px;align-items:center}
+        .logo{width:64px;height:64px;border-radius:6px;object-fit:cover}
+        .company{font-size:28px;color:#1565d8;font-weight:800}
+        .subtitle{color:#666;font-size:11px}
+
+        /* Prevent work-day blocks from being split across pages */
+        .work-day{margin-top:18px; page-break-inside:avoid; break-inside:avoid; -webkit-column-break-inside:avoid}
+        .work-day-header{background:#f3f4f6;padding:8px;border:1px solid #e6e6e6}
+
+        /* Tables: allow header repetition and avoid row splits */
+        table{width:100%;border-collapse:collapse;margin-top:8px; page-break-inside:auto}
+        thead{display:table-header-group}
+        tbody{display:table-row-group}
+        tr{page-break-inside:avoid; break-inside:avoid}
+        th{background:#fafafa;padding:6px;border:1px solid #e6e6e6;text-align:left;font-size:11px}
+        td{padding:6px;border:1px solid #eee;font-size:10px}
+
+        /* Footer should stay together */
+        .footer{width:100%;text-align:center;color:#666;font-size:12px;margin-top:18px; page-break-inside:avoid}
+
+        /* Fallbacks for older engines */
+        @media print {
+          .work-day, .work-day-header, tr { page-break-inside: avoid; }
+          thead { display: table-header-group; }
+        }
+      </style>
+    </head><body>
+      <div class="header">
+        ${logoData ? `<img src="${logoData}" class="logo"/>` : ''}
+        <div>
+          <div class="company">${companyName}</div>
+          <div class="subtitle">Workforce Summary Report<br/><strong>All Time Summary</strong></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">${worker.name}<br/>Work Days: ${sorted.length} | Total Earned: ₹${(worker.totalEarnings||0).toFixed(2)}</div>
+      ${sorted.map(w=>`<div class="work-day"><div class="work-day-header">${new Date(w.date).toLocaleDateString()} <span style="float:right;font-weight:700">Total: ₹${(w.totalEarned||0).toFixed(2)}</span></div>
+        <table class="work-table" style="page-break-inside:avoid; break-inside:avoid; -webkit-column-break-inside:avoid; width:100%"><thead><tr><th>Item Name</th><th>Pieces</th><th>Rate</th><th>Total</th></tr></thead><tbody>
+        ${ (w.items||[]).map(item=>`<tr style="page-break-inside:avoid; break-inside:avoid"><td>${item.itemName||'-'}</td><td style="text-align:right">${item.piecesCompleted||0}</td><td style="text-align:right">₹${((item.wageRate||item.rate)||0).toFixed(2)}</td><td style="text-align:right">₹${((item.totalWage)||(((item.wageRate||item.rate)||0)*(item.piecesCompleted||0))).toFixed(2)}</td></tr>`).join('')}
+        </tbody></table></div>`).join('')}
+      <div class="footer">Report generated on ${new Date().toLocaleDateString()}</div>
+    </body></html>`;
+
+    // Launch puppeteer and render PDF
+    const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '18mm', bottom: '18mm', left: '12mm', right: '12mm' }, preferCSSPageSize: true });
+    await browser.close();
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${worker.name}-report-${Date.now()}.pdf"`);
+    return res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Puppeteer PDF error:', error);
+    return res.status(500).json({ message: 'Error generating PDF via Puppeteer', error: error.message });
   }
 };

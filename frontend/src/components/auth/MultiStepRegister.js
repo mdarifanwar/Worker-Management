@@ -138,15 +138,7 @@ const MultiStepRegister = () => {
     <div className="auth-container">
       <div className="auth-card">
         <h1>Create an Account</h1>
-        <button
-          type="button"
-          className="btn-google"
-          style={{ width: '100%', marginBottom: '1rem', background: '#fff', color: '#333', border: '1px solid #ddd', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-  onClick={() => window.location.href = '/api/auth/google'}
-        >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png" alt="Google" style={{ width: '24px', height: '24px' }} />
-          Sign up with Gmail
-        </button>
+        {/* Google sign-up removed — registration uses email + OTP */}
         {step === 1 && (
           <form onSubmit={handleCompanyDetails}>
             <div className="form-group">

@@ -52,169 +52,182 @@ const WorkerDetails = () => {
 
     const sortedWorkHistory = [...worker.workHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
 
+    const nowStamp = format(new Date(), 'dd/MM/yyyy, HH:mm');
     return `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${worker.name} - Work History Report</title>
-          <style>
+          <title>${companyName || worker.name} - Work History Report</title>
+            <style>
+            /* Professional, print-friendly styles matching the provided sample */
+            html,body { height: 100%; }
             body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-              color: #333;
-            }
-            .header {
-              display: flex;
-              align-items: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #000;
-              padding-bottom: 15px;
-              justify-content: flex-start;
-              gap: 1.2rem;
-            }
-            .company-logo {
-              width: 56px;
-              height: 56px;
-              object-fit: cover;
-              border-radius: 12px;
-              box-shadow: 0 4px 16px rgba(15,98,254,0.10);
-              margin-right: 0.5rem;
-            }
-            .company-name {
-              font-size: 1.35rem;
-              font-weight: 700;
-              color: #2563eb;
-              margin-bottom: 0;
-              margin-right: 1.2rem;
-            }
-            .header-content {
-              display: flex;
-              flex-direction: column;
-              align-items: flex-start;
-              gap: 0.2rem;
-            }
-            .header-content h1 {
-              margin: 0;
-              font-size: 1.25rem;
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              margin: 18mm 12mm;
               color: #222;
-              font-weight: 700;
-            }
-            .header-content h2 {
-              margin: 0;
-              font-size: 1.05rem;
-              color: #666;
-              font-weight: 500;
-            }
-            .work-day {
-              margin-bottom: 25px;
-              page-break-inside: avoid;
-            }
-            .work-day-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              background-color: #f5f5f5;
-              padding: 10px 15px;
-              border: 1px solid #ddd;
-              border-bottom: none;
-            }
-            .work-day-date {
-              font-size: 16px;
-              font-weight: bold;
-            }
-            .work-day-total {
-              font-size: 16px;
-              font-weight: bold;
-              color: #000;
-            }
-            .work-table {
-              width: 100%;
-              border-collapse: collapse;
-              border: 1px solid #ddd;
-            }
-            .work-table th {
-              background-color: #f8f8f8;
-              border: 1px solid #ddd;
-              padding: 8px 12px;
-              text-align: left;
-              font-weight: bold;
-              font-size: 14px;
-            }
-            .work-table td {
-              border: 1px solid #ddd;
-              padding: 8px 12px;
-              font-size: 14px;
-            }
-            .total-section {
-              margin-top: 10px;
-              text-align: right;
-              font-weight: bold;
-              font-size: 16px;
-            }
-            .footer {
-              position: fixed;
-              left: 0;
-              bottom: 0;
-              width: 100%;
               background: #fff;
-              text-align: center;
-              padding: 12px 0 8px 0;
-              border-top: 1px solid #ddd;
-              color: #666;
-              font-size: 14px;
-              z-index: 100;
+              -webkit-print-color-adjust: exact;
             }
-            @media print {
-              body { margin: 0; }
-              .work-day { break-inside: avoid; }
-            }
+
+            .page-top { display:flex; justify-content:space-between; align-items:flex-start; }
+            .top-left { font-size:10px; color:#666; }
+            .header-row { display:flex; align-items:center; gap:14px; margin-top:6px; }
+            .logo-left { width:80px; height:80px; object-fit:cover; border-radius:8px; }
+            .brand { display:flex; flex-direction:column; }
+            .company-name { font-size:32px; letter-spacing:0.5px; font-weight:900; color:#1565d8; margin:0; }
+            .subtitle { font-size:13px; color:#666; margin-top:4px; }
+
+            .worker-title { margin-top:6px; font-size:14px; color:#222; font-weight:700; }
+
+            .worker-block { margin: 18px 0; page-break-inside: avoid; }
+            .work-day { margin-top:14px; }
+
+            .work-day-header { display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:10px 12px; border:1px solid #e6eef8; border-radius:2px; }
+            .work-table { width:100%; border-collapse:collapse; margin-top:8px; }
+            .work-table th { background:#f1f5f9; padding:10px; text-align:left; border:1px solid #e6eef8; font-weight:700; }
+            .work-table td { padding:10px; border:1px solid #eef4f8; font-size:13px; }
+
+            .footer-line { width:100%; border-top:1px solid #eee; padding-top:8px; font-size:12px; color:#666; text-align:center; margin-top:18px; }
+
+            @media print { body { margin: 12mm 8mm; } .worker-block { page-break-inside: avoid; } }
           </style>
         </head>
         <body>
-          <div class="header">
-            ${logo ? `<img src="${logo}" alt="Company Logo" class="company-logo" onerror="this.style.display='none'" />` : ''}
-            ${companyName ? `<span class="company-name">${companyName}</span>` : ''}
-            <div class="header-content">
-              <h1>${worker.name}</h1>
-              <h2>Work History Report</h2>
+          <div class="page-top">
+            <div class="top-left">${nowStamp}</div>
+            <div style="flex:1"></div>
+            <div style="width:80px"></div>
+          </div>
+          <div class="header-row">
+            ${logo ? `<img src="${logo}" alt="Company Logo" class="logo-left company-logo" />` : ''}
+            <div class="brand">
+              ${companyName ? `<div class="company-name">${companyName}</div>` : ''}
+              <div class="subtitle">Workforce Summary Report<br/><span style="font-weight:600">All Time Summary</span></div>
             </div>
           </div>
 
-          ${sortedWorkHistory.map(workDay => `
-            <div class="work-day">
-              <div class="work-day-header">
-                <span class="work-day-date">${format(new Date(workDay.date), 'MMMM dd, yyyy')}</span>
-                <span class="work-day-total">Total: ₹${workDay.totalEarned.toFixed(2)}</span>
-              </div>
-              <table class="work-table">
-                <thead>
-                  <tr>
-                    <th>Item Name</th>
-                    <th>Pieces</th>
-                    <th>Rate</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${workDay.items.map(item => `
-                    <tr>
-                      <td>${item.itemName}</td>
-                      <td>${item.piecesCompleted}</td>
-                      <td>₹${item.wageRate.toFixed(2)}</td>
-                      <td>₹${item.totalWage.toFixed(2)}</td>
+          <div class="content">
+            <div class="worker-block">
+              <div class="worker-name">${worker.name}</div>
+              <div class="worker-stats">Work Days: ${worker.workHistory.length} | Total Earned: ₹${(worker.totalEarnings || 0).toFixed(2)}</div>
+            </div>
+
+            ${sortedWorkHistory.map(workDay => `
+              <div class="work-day" style="margin-top:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;background:#f3f4f6;padding:10px;border:1px solid #e6e6e6;">
+                  <div style="font-weight:700">${format(new Date(workDay.date), 'MMMM dd, yyyy')}</div>
+                  <div style="font-weight:700">Total: ₹${(workDay.totalEarned || 0).toFixed(2)}</div>
+                </div>
+                <table class="work-table" style="width:100%;border-collapse:collapse;border:1px solid #e6e6e6;margin-top:6px;">
+                  <thead>
+                    <tr style="background:#fafafa;border-bottom:1px solid #e6e6e6;">
+                      <th style="text-align:left;padding:8px;border-right:1px solid #e6e6e6;font-weight:700;">Item Name</th>
+                      <th style="text-align:right;padding:8px;border-right:1px solid #e6e6e6;font-weight:700;">Pieces</th>
+                      <th style="text-align:right;padding:8px;border-right:1px solid #e6e6e6;font-weight:700;">Rate</th>
+                      <th style="text-align:right;padding:8px;font-weight:700;">Total</th>
                     </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `).join('')}
-
-          <div class="footer">
-            Report generated on ${format(new Date(), 'MMMM dd, yyyy')}
+                  </thead>
+                  <tbody>
+                    ${workDay.items.map(item => `
+                      <tr>
+                        <td style="padding:8px;border-top:1px solid #eee;border-right:1px solid #eee;">${item.itemName || '-'}</td>
+                        <td style="padding:8px;border-top:1px solid #eee;border-right:1px solid #eee;text-align:right;">${item.piecesCompleted || 0}</td>
+                        <td style="padding:8px;border-top:1px solid #eee;border-right:1px solid #eee;text-align:right;">₹${(item.wageRate || item.rate || 0).toFixed(2)}</td>
+                        <td style="padding:8px;border-top:1px solid #eee;text-align:right;">₹${(item.totalWage || ((item.wageRate || item.rate || 0) * (item.piecesCompleted || 0))).toFixed(2)}</td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `).join('')}
           </div>
+
+          <div class="footer-line">Report generated on ${format(new Date(), 'MMMM dd, yyyy')}</div>
         </body>
       </html>
     `;
+  };
+
+  // Robust helper to obtain a logo as a data URL. Tries multiple fetch strategies
+  // and falls back to loading the image into a canvas when possible.
+  const fetchLogoDataUrl = async (url) => {
+    if (!url) return { dataUrl: null, method: null };
+    try {
+      if (url.startsWith('data:')) return { dataUrl: url, method: 'data-url' };
+    } catch (e) {}
+
+    const tryBlobFetch = async (input, opts = {}) => {
+      try {
+        console.debug('[logo] tryBlobFetch', input, opts);
+        const resp = await fetch(input, opts);
+        if (!resp.ok) {
+          console.debug('[logo] tryBlobFetch failed status', resp.status, input);
+          return null;
+        }
+        const blob = await resp.blob();
+        return await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.debug('[logo] tryBlobFetch exception', e && e.message);
+        return null;
+      }
+    };
+
+    // Try fetch with credentials (if backend requires cookies)
+    let dataUrl = await tryBlobFetch(url, { credentials: 'include' });
+    if (dataUrl) return { dataUrl, method: 'fetch-credentials' };
+
+    // Try simple fetch without credentials
+    dataUrl = await tryBlobFetch(url, {});
+    if (dataUrl) return { dataUrl, method: 'fetch' };
+
+    // Try backend proxy (same-origin) using filename if available
+    try {
+      const parts = url.split('/');
+      const filename = parts[parts.length - 1];
+      if (filename) {
+        const proxyUrl = `${BACKEND_ORIGIN}/api/assets/logo-base64?path=${encodeURIComponent(filename)}`;
+        console.debug('[logo] trying proxy', proxyUrl);
+        const resp = await fetch(proxyUrl, { credentials: 'include' });
+        if (resp.ok) {
+          const json = await resp.json();
+          if (json && json.data) return { dataUrl: json.data, method: 'proxy' };
+        } else {
+          console.debug('[logo] proxy failed', resp.status, proxyUrl);
+        }
+      }
+    } catch (e) {
+      console.debug('[logo] proxy exception', e && e.message);
+      // ignore proxy errors
+    }
+
+    // Last resort: try to load the image via Image() and draw to canvas
+    try {
+      console.debug('[logo] trying image->canvas fallback', url);
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        // attempt crossOrigin anonymous; may fail if server doesn't permit
+        i.crossOrigin = 'Anonymous';
+        i.onload = () => resolve(i);
+        i.onerror = (err) => reject(err);
+        i.src = url;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const result = canvas.toDataURL('image/png');
+      return { dataUrl: result, method: 'canvas-fallback' };
+    } catch (e) {
+      console.debug('[logo] canvas fallback failed', e && e.message);
+      return { dataUrl: null, method: null };
+    }
   };
 
   const generatePdf = async () => {
@@ -224,54 +237,249 @@ const WorkerDetails = () => {
     }
 
     try {
-      // Create a temporary iframe for PDF generation
+      // Inline logo as data URL (robust fetch is done by fetchLogoDataUrl)
+
+      // Determine logo URL (same logic as in generatePrintableHTML)
+      let logoUrl = '';
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user?.logo) {
+          const origin = BACKEND_ORIGIN || '';
+          logoUrl = user.logo.startsWith('http') ? user.logo : `${origin}/uploads/${user.logo}`;
+        }
+      } catch (e) {}
+
+      const { dataUrl: logoDataUrl, method: logoMethod } = await fetchLogoDataUrl(logoUrl);
+      console.debug('[generatePdf] logo fetch method:', logoMethod, 'logoDataUrl present:', !!logoDataUrl);
+
+      // Create a temporary iframe for PDF generation. Use A4 pixel width for consistent rendering.
       const iframe = document.createElement('iframe');
       iframe.style.position = 'absolute';
       iframe.style.left = '-10000px';
       iframe.style.top = '0';
-      iframe.style.width = '210mm'; // A4 width
-      iframe.style.height = '297mm'; // A4 height
+      // A4 at 96dpi: 210mm * 96 / 25.4 = ~794px
+      const A4_PX_WIDTH = Math.round(210 * 96 / 25.4);
+      iframe.style.width = `${A4_PX_WIDTH}px`;
+      // set a large height; we'll clip via html2canvas
+      iframe.style.height = '1200px';
       iframe.style.border = 'none';
       document.body.appendChild(iframe);
 
       const htmlContent = generatePrintableHTML();
-      iframe.contentDocument.write(htmlContent);
+      // If we were able to fetch inline logo data URL, replace the logo src with the data URL
+      let finalHtml = htmlContent;
+      if (logoDataUrl) {
+        // Replace any img that has either company-logo or logo-left in its class attribute
+        finalHtml = htmlContent.replace(/(<img[^>]*class=\"[^\"]*(?:company-logo|logo-left)[^\"]*\"[^>]*src=\")(.*?)(\"[^>]*>)/i, `$1${logoDataUrl}$3`);
+      }
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(finalHtml);
       iframe.contentDocument.close();
+      // ensure body width matches A4 pixel width so css lays out correctly
+      try { iframe.contentDocument.body.style.width = `${A4_PX_WIDTH}px`; } catch(e) {}
 
-      // Wait for content to load
+      // If we have an inlined logo data URL, set it directly on the image element inside the iframe
+      try {
+          if (logoDataUrl) {
+            const doc = iframe.contentDocument;
+            const imgEl = doc.querySelector && (doc.querySelector('.company-logo') || doc.querySelector('.logo-left'));
+            if (imgEl) {
+              try {
+                imgEl.src = logoDataUrl;
+                // If the image is already cached/complete, make it visible immediately.
+                // Otherwise hide until onload fires to avoid rendering incomplete image.
+                try {
+                  if (imgEl.complete) {
+                    imgEl.style.visibility = 'visible';
+                  } else {
+                    imgEl.style.visibility = 'hidden';
+                    imgEl.onload = () => { imgEl.style.visibility = 'visible'; };
+                  }
+                  imgEl.onerror = () => { imgEl.style.display = 'none'; };
+                } catch (e) {
+                  // best-effort: ensure visible in case of unexpected DOM restrictions
+                  try { imgEl.style.visibility = 'visible'; } catch(_){}
+                }
+                // remove crossorigin attr which may interfere after setting data URL
+                try { imgEl.removeAttribute('crossorigin'); } catch(e){}
+              } catch(e) {
+                // fallback: set visibility visible if assignment fails silently
+                try { imgEl.style.visibility = 'visible'; } catch(_){ }
+              }
+            }
+          }
+      } catch (e) {
+        // ignore DOM access errors
+      }
+
+      // Wait for content and all images inside iframe to load
+      // Wait for content and all images inside iframe to load (longer timeout for logo fetching)
       await new Promise(resolve => {
-        iframe.onload = resolve;
-        iframe.contentWindow.onload = resolve;
+        const doc = iframe.contentDocument;
+        const win = iframe.contentWindow;
+        let images = Array.from(doc.images || []);
+        if (images.length === 0) {
+          // wait for window load
+          win.onload = resolve;
+          iframe.onload = resolve;
+          // safety timeout
+          setTimeout(resolve, 800);
+          return;
+        }
+
+        let loaded = 0;
+        const check = () => {
+          loaded += 1;
+          if (loaded >= images.length) resolve();
+        };
+        images.forEach(img => {
+          try {
+            if (img.complete) return check();
+            img.onload = check;
+            img.onerror = check;
+          } catch (e) {
+            check();
+          }
+        });
+        // Fallback safety
+        setTimeout(resolve, 5000);
       });
 
-      const canvas = await html2canvas(iframe.contentDocument.body, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: 794, // A4 width in pixels at 96 DPI
-        height: iframe.contentDocument.body.scrollHeight,
-        windowWidth: 794,
-        windowHeight: iframe.contentDocument.body.scrollHeight
-      });
+      // Paginated rendering: render the document in page-sized slices instead of one huge canvas.
+      const body = iframe.contentDocument.body;
+      const totalHeight = body.scrollHeight;
+      const totalWidth = body.scrollWidth;
 
-      document.body.removeChild(iframe);
+      // Choose scale dynamically: use a lower scale for very tall documents to avoid huge canvases
+      const scale = totalHeight > 4000 ? 1 : 2;
 
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = imgWidth / imgHeight;
-      
-      let width = pdfWidth;
-      let height = width / ratio;
 
-      // Add image to PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-      
+      // Account for the printable margins defined in generatePrintableHTML (body { margin: 18mm 12mm; })
+      const topMarginMm = 18;
+      const bottomMarginMm = 18;
+      const leftMarginMm = 12;
+      const rightMarginMm = 12;
+
+      // Reserve some space (mm) at bottom of each PDF page for footer / page numbers
+      const footerReserveMm = 18; // mm (slightly larger to be safe)
+
+      // Compute usable content dimensions in mm inside the PDF page
+      const contentPdfWidthMm = Math.max(pdfWidth - leftMarginMm - rightMarginMm, pdfWidth * 0.6);
+      const contentPdfHeightMm = Math.max(pdfHeight - topMarginMm - bottomMarginMm - footerReserveMm, pdfHeight * 0.6);
+
+      // Calculate CSS px per mm for the current rendered width (based on content width)
+      const cssPxPerMm = totalWidth / contentPdfWidthMm; // CSS pixels per mm
+      // Page height in CSS pixels (for the printable area)
+      const pageHeightPx = Math.floor(contentPdfHeightMm * cssPxPerMm);
+
+      // Render each page slice via html2canvas using the clipping options (x,y,width,height)
+      let position = 0;
+      let pageIndex = 0;
+
+      // Row-aware pagination: measure work-day blocks and table rows and create page ranges
+      const overlapMm = 6; // small visual padding in mm between slices
+      const overlapPx = Math.ceil(overlapMm * cssPxPerMm);
+
+      // Collect important elements that should not be split: .work-day and table rows
+      const visualItems = Array.from(body.querySelectorAll('.work-day, .work-table tbody tr'));
+      visualItems.sort((a, b) => (a.offsetTop || 0) - (b.offsetTop || 0));
+
+      const pageRanges = [];
+      let currentStart = 0;
+
+      for (let i = 0; i < visualItems.length; i++) {
+        const el = visualItems[i];
+        const elTop = el.offsetTop || 0;
+        const elBottom = elTop + (el.offsetHeight || 0);
+
+        // If this element would overflow the current page, break before it
+        if (elBottom - currentStart > pageHeightPx) {
+          // end current page just before this element, leave a tiny padding
+          const endPos = Math.max(currentStart + pageHeightPx, elTop);
+          pageRanges.push({ start: currentStart, end: endPos });
+          currentStart = elTop;
+        }
+      }
+
+      // Push final range
+      if (currentStart < totalHeight) pageRanges.push({ start: currentStart, end: totalHeight });
+
+      // Fallback if no visualItems found (e.g., very simple page) — split by fixed pages
+      if (pageRanges.length === 0) {
+        let pos = 0;
+        while (pos < totalHeight) {
+          const h = Math.min(pageHeightPx, totalHeight - pos);
+          pageRanges.push({ start: pos, end: pos + h });
+          pos += h;
+        }
+      }
+
+      // Render each computed page range
+      for (const range of pageRanges) {
+        const start = Math.max(0, Math.floor(range.start - overlapPx / 2));
+        const end = Math.min(totalHeight, Math.ceil(range.end + overlapPx / 2));
+        const renderHeight = Math.max(1, end - start);
+
+        const sliceCanvas = await html2canvas(body, {
+          scale,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          width: totalWidth,
+          height: Math.ceil(renderHeight),
+          x: 0,
+          y: Math.floor(start),
+          windowWidth: totalWidth,
+          windowHeight: Math.ceil(renderHeight)
+        });
+
+        try {
+          const sliceData = sliceCanvas.toDataURL('image/png');
+          const sliceHeightMm = (sliceCanvas.height / scale) / cssPxPerMm;
+
+          if (pageIndex > 0) pdf.addPage();
+          const imgX = leftMarginMm;
+          const imgY = topMarginMm;
+          const imgW = contentPdfWidthMm;
+          pdf.addImage(sliceData, 'PNG', imgX, imgY, imgW, sliceHeightMm);
+
+          // Draw centered footer
+          const footerText = `Report generated on ${format(new Date(), 'MMMM dd, yyyy')}`;
+          pdf.setFontSize(10);
+          pdf.setTextColor(120);
+          pdf.text(footerText, pdfWidth / 2, pdfHeight - 8, { align: 'center' });
+        } catch (err) {
+          console.debug('Error adding slice to PDF:', err);
+        }
+
+        pageIndex += 1;
+      }
+
+      // Remove iframe now that we have built the PDF
+      try { document.body.removeChild(iframe); } catch(e) {}
+
+      // Add page numbers (Page X of Y) at bottom-right
+      try {
+        let pageCount = 1;
+        if (typeof pdf.getNumberOfPages === 'function') pageCount = pdf.getNumberOfPages();
+        else if (pdf.internal && pdf.internal.getNumberOfPages) pageCount = pdf.internal.getNumberOfPages();
+        else if (pdf.internal && pdf.internal.pages) pageCount = pdf.internal.pages.length - 1;
+
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+          const w = pdf.internal.pageSize.getWidth();
+          const h = pdf.internal.pageSize.getHeight();
+          pdf.setFontSize(10);
+          pdf.setTextColor(120);
+          pdf.text(`Page ${i} of ${pageCount}`, w - 12, h - 8, { align: 'right' });
+        }
+      } catch (e) {
+        // ignore page-numbering errors
+      }
+
       return pdf;
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -280,20 +488,82 @@ const WorkerDetails = () => {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!worker) return;
-    
+
+    // Determine logo URL like other places
+    let logoUrl = '';
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user?.logo) {
+        const origin = BACKEND_ORIGIN || '';
+        logoUrl = user.logo.startsWith('http') ? user.logo : `${origin}/uploads/${user.logo}`;
+      }
+    } catch (e) {}
+
+    const { dataUrl: logoDataUrl, method: logoMethod } = await fetchLogoDataUrl(logoUrl);
+    console.debug('[handlePrint] logo fetch method:', logoMethod, 'logoDataUrl present:', !!logoDataUrl);
+
     const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      const htmlContent = generatePrintableHTML();
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-      printWindow.focus();
-      
-      // Wait for content to load before printing
-      printWindow.onload = () => {
-        printWindow.print();
-      };
+    if (!printWindow) return;
+
+    let htmlContent = generatePrintableHTML();
+    if (logoDataUrl) {
+      htmlContent = htmlContent.replace(/(<img[^>]*class=\"[^\"]*(?:company-logo|logo-left)[^\"]*\"[^>]*src=\")(.*?)(\"[^>]*>)/i, `$1${logoDataUrl}$3`);
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.focus();
+    // match iframe rendering: set A4 pixel width for print window to get same layout
+    try {
+      const A4_PX_WIDTH = Math.round(210 * 96 / 25.4);
+      printWindow.document.body.style.width = `${A4_PX_WIDTH}px`;
+    } catch (e) {}
+
+    // If image exists in print window, ensure it becomes visible when loaded
+    try {
+      const imgEl = printWindow.document.querySelector && (printWindow.document.querySelector('.company-logo') || printWindow.document.querySelector('.logo-left'));
+      if (imgEl) {
+        if (logoDataUrl) imgEl.src = logoDataUrl;
+        else if (logoUrl) imgEl.src = logoUrl;
+        // show when loaded
+        imgEl.onload = () => { try { imgEl.style.visibility = 'visible'; } catch(e){} };
+        imgEl.onerror = () => { try { imgEl.style.display = 'none'; } catch(e){} };
+        try { imgEl.removeAttribute('crossorigin'); } catch(e){}
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Wait for images to load in the new window before calling print
+    try {
+      const doc = printWindow.document;
+      const images = Array.from(doc.images || []);
+      if (images.length === 0) {
+        printWindow.onload = () => printWindow.print();
+        setTimeout(() => { try { printWindow.print(); } catch(e){} }, 800);
+        return;
+      }
+
+      await new Promise((resolve) => {
+        let loaded = 0;
+        const check = () => {
+          loaded += 1;
+          if (loaded >= images.length) resolve();
+        };
+        images.forEach(img => {
+          if (img.complete) return check();
+          img.onload = check;
+          img.onerror = check;
+        });
+        setTimeout(resolve, 1500);
+      });
+      printWindow.print();
+    } catch (e) {
+      // fallback
+      try { printWindow.print(); } catch (err) {}
     }
   };
 
@@ -323,7 +593,21 @@ const WorkerDetails = () => {
       const pdf = await generatePdf();
       if (!pdf) return;
 
-      const pdfBlob = pdf.output('blob');
+      let pdfBlob;
+      try {
+        // preferred: jsPDF output('blob')
+        pdfBlob = pdf.output('blob');
+      } catch (e) {
+        // fallback: arraybuffer -> Blob
+        try {
+          const ab = pdf.output('arraybuffer');
+          pdfBlob = new Blob([ab], { type: 'application/pdf' });
+        } catch (err) {
+          console.error('Could not generate PDF blob:', err);
+          toast.error('Could not prepare PDF to share.');
+          return;
+        }
+      }
       const file = new File([pdfBlob], `${worker.name}_work_history.pdf`, { type: 'application/pdf' });
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {

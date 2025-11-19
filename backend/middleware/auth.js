@@ -1,8 +1,16 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
+    // If the database is not connected, fail fast with 503 instead of
+    // allowing Mongoose to buffer the query and timeout after ~10s.
+    // readyState: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    if (mongoose.connection.readyState !== 1) {
+      console.error('[auth] Database not connected (readyState=' + mongoose.connection.readyState + ')');
+      return res.status(503).json({ message: 'Service unavailable: database not connected' });
+    }
     // Support token via Authorization header (Bearer) or HttpOnly cookie `token`
     let token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token && req.cookies && req.cookies.token) {

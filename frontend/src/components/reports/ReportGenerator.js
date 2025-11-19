@@ -32,7 +32,9 @@ const ReportGenerator = ({ workerId, workerName }) => {
 
       let response;
       if (reportType === 'worker' && workerId) {
-        response = await api.get(`/reports/worker/${workerId}`, {
+        // Use server-side HTML->PDF (Puppeteer) route for downloads so layout and images
+        // match the printed version. This inlines logos and respects CSS page-break rules.
+        response = await api.get(`/reports/worker/${workerId}/htmlpdf`, {
           params,
           responseType: 'blob',
         });
@@ -65,8 +67,24 @@ const ReportGenerator = ({ workerId, workerName }) => {
       
     } catch (error) {
       let errorMsg = 'Error generating report. Please try again.';
-      if (error.response && error.response.data && error.response.data.message) {
-        errorMsg = `Error: ${error.response.data.message}`;
+      try {
+        if (error.response && error.response.data) {
+          const data = error.response.data;
+          if (data instanceof Blob) {
+            // Try to extract JSON message from blob
+            const text = await data.text();
+            try {
+              const json = JSON.parse(text);
+              errorMsg = json.message || text;
+            } catch (e) {
+              errorMsg = text || errorMsg;
+            }
+          } else if (data.message) {
+            errorMsg = `Error: ${data.message}`;
+          }
+        }
+      } catch (e) {
+        // ignore parsing errors
       }
       toast.error(errorMsg);
       console.error('Report generation error:', error.response ? error.response.data : error.message);

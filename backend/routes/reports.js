@@ -12,6 +12,8 @@ router.use(auth);
 
 // Generate PDF report for specific worker
 router.get('/worker/:workerId', generateWorkerReport);
+// Server-side HTML->PDF (Puppeteer) route (pixel-perfect)
+router.get('/worker/:workerId/htmlpdf', require('../controllers/reportController').generateWorkerReportHtmlPdf);
 
 // Generate summary report for all workers
 router.get('/summary', generateSummaryReport);

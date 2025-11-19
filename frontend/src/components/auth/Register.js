@@ -56,10 +56,10 @@ const Register = () => {
   // Step 2: Contact info
   const handleNextStep2 = (e) => {
     e.preventDefault();
-    const emailRegex = /^[^\s@]+@gmail\.com$/i;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
     const phoneRegex = /^(\+91)?[6-9][0-9]{9}$/;
     if (!emailRegex.test(formData.email)) {
-      toast.error('Please enter a valid Gmail address');
+      toast.error('Please enter a valid email address');
       return;
     }
     if (!phoneRegex.test(formData.phone.trim())) {
@@ -196,15 +196,7 @@ const Register = () => {
           <h1>Create an Account</h1>
           <p>Join us to manage your workforce efficiently</p>
         </div>
-        <button
-          type="button"
-          className="btn-google"
-          style={{ width: '100%', marginBottom: '1rem', background: '#fff', color: '#333', border: '1px solid #ddd', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-          onClick={() => window.location.href = '/api/auth/google'}
-        >
-          <img src="https://www.gstatic.com/images/branding/product/1x/gmail_2020q4_48dp.png" alt="Gmail" style={{ width: '24px', height: '24px', marginRight: '0.5rem' }} />
-          Sign up with Gmail
-        </button>
+        {/* Google sign-up button removed — using email + OTP only */}
         {/* Step 1: Company info */}
         {step === 1 && (
           <form onSubmit={handleNextStep1} className="auth-form" encType="multipart/form-data">

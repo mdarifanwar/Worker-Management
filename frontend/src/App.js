@@ -21,8 +21,6 @@ import ResetPassword from './pages/ResetPassword';
 // Auth Context
 import { AuthProvider, useAuth } from './services/auth';
 
-// Debug Panel for persistent logging
-import DebugPanel from './components/common/DebugPanel';
 
 import './styles/App.css';
 
@@ -64,8 +62,7 @@ function App() {
           </Routes>
           <ToastContainer position="top-right" autoClose={3000} />
           
-          {/* Debug Panel - only in development */}
-          <DebugPanel />
+          {/* Debug Panel removed from main UI; enable via console `enableDebugPanel()` if needed */}
         </div>
       </BrowserRouter>
     </AuthProvider>
